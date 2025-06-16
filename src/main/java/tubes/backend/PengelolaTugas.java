@@ -8,10 +8,8 @@ import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+
 
 // Kelas ini digunakan untuk mengelola proses pendaftaran, login, dan pengelolaan tugas user pada aplikasi
 public class PengelolaTugas {
@@ -119,46 +117,65 @@ public class PengelolaTugas {
     // Fungsi untuk membuat tugas baru untuk user yang sedang login
     // Mengembalikan objek Tugas jika berhasil, null jika gagal
     public Tugas buatTugas(String judul, String deskripsi, LocalDateTime tanggalBatas, String kategori, String lokasi) {
-        if (currentUser == null) {
-            System.err.println("Tidak ada user yang login untuk membuat tugas.");
-            return null;
+    if (currentUser == null) {
+        System.err.println("Tidak ada user yang login untuk membuat tugas.");
+        return null;
+    }
+
+    String checkSql = "SELECT id FROM tasks WHERE user_id = ? AND judul = ? AND tanggal_batas = ?";
+    String insertSql = "INSERT INTO tasks (user_id, judul, deskripsi, tanggal_batas, kategori, lokasi) VALUES (?, ?, ?, ?, ?, ?)";
+
+    try (Connection conn = DatabaseManager.getConnection()) {
+        
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+            checkStmt.setInt(1, currentUser.getId());
+            checkStmt.setString(2, judul);
+            checkStmt.setString(3, tanggalBatas != null ? tanggalBatas.toString() : null);
+
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next()) {
+                // Jika ditemukan, berarti duplikat. Hentikan proses.
+                System.out.println("Pencegahan duplikasi: Tugas sudah ada.");
+                return null; 
+            }
         }
 
-        String sql = "INSERT INTO tasks (user_id, judul, deskripsi, tanggal_batas, kategori, lokasi) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+        //Jika tidak duplikat, lanjutkan proses penyimpanan data baru
+        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+            insertStmt.setInt(1, currentUser.getId());
+            insertStmt.setString(2, judul);
+            insertStmt.setString(3, deskripsi);
+            insertStmt.setString(4, tanggalBatas != null ? tanggalBatas.toString() : null);
+            insertStmt.setString(5, kategori);
+            insertStmt.setString(6, lokasi);
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            pstmt.setInt(1, currentUser.getId());
-            pstmt.setString(2, judul);
-            pstmt.setString(3, deskripsi);
-            pstmt.setString(4, tanggalBatas != null ? tanggalBatas.toString() : null);
-            pstmt.setString(5, kategori);
-            pstmt.setString(6, lokasi);
-
-            int affectedRows = pstmt.executeUpdate();
+            int affectedRows = insertStmt.executeUpdate();
 
             if (affectedRows > 0) {
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int newTaskId = generatedKeys.getInt(1);
                         Tugas tugasBaru = new Tugas(newTaskId, currentUser.getId(), judul, deskripsi, tanggalBatas, kategori, lokasi, "Belum Dimulai");
-
+                        
                         if (this.currentUser.getDaftarTugas() != null) {
                             this.currentUser.tambahTugas(tugasBaru);
                         }
-                        System.out.println("Tugas '" + judul + "' berhasil dibuat untuk user " + currentUser.getUsername());
+                        System.out.println("Tugas '" + judul + "' berhasil dibuat.");
                         return tugasBaru;
                     }
                 }
             }
-        } catch (SQLException e) {
-            System.err.println("Error SQL saat membuat tugas: " + e.getMessage());
-            e.printStackTrace();
         }
-        return null;
+
+    } catch (SQLException e) {
+        System.err.println("Error SQL saat membuat tugas: " + e.getMessage());
+        e.printStackTrace();
     }
+    
+    return null;
+}
+
+
 
     // Fungsi untuk mengubah data tugas milik user yang sedang login
     // Mengembalikan true jika berhasil, false jika gagal
