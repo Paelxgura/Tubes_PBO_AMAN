@@ -13,14 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// Kelas ini digunakan untuk mengelola proses pendaftaran, login, dan pengelolaan tugas user pada aplikasi
 public class PengelolaTugas {
+    // Menyimpan user yang sedang login di aplikasi
     private User currentUser;
 
+    // Konstruktor untuk inisialisasi tanpa user login
     public PengelolaTugas() {
         this.currentUser = null;
     }
 
-    // Metode daftarAkun, masukSistem, logout, getCurrentUser tetap sama...
+    // Fungsi untuk mendaftarkan akun baru ke database
+    // Mengembalikan objek User jika berhasil, null jika gagal
     public User daftarAkun(String username, String email, String sandi) {
         String sqlCheck = "SELECT id FROM users WHERE username = ? OR email = ?";
         String sqlInsert = "INSERT INTO users (username, email, sandi) VALUES (?, ?, ?)";
@@ -61,6 +65,8 @@ public class PengelolaTugas {
         return null;
     }
 
+    // Fungsi untuk login user ke aplikasi
+    // Mengembalikan true jika login berhasil, false jika gagal
     public boolean masukSistem(String usernameOrEmail, String sandiInput) {
         String sql = "SELECT id, username, email, sandi FROM users WHERE username = ? OR email = ?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -97,6 +103,7 @@ public class PengelolaTugas {
         return false;
     }
 
+    // Fungsi untuk logout user dari aplikasi
     public void logout() {
         if (this.currentUser != null) {
             System.out.println("User " + this.currentUser.getUsername() + " logout.");
@@ -104,20 +111,19 @@ public class PengelolaTugas {
         this.currentUser = null;
     }
 
+    // Mengambil user yang sedang login saat ini
     public User getCurrentUser() {
         return currentUser;
     }
-    // Akhir dari metode yang tidak berubah
 
-    // --- PERBAIKAN DIMULAI DI SINI ---
-
+    // Fungsi untuk membuat tugas baru untuk user yang sedang login
+    // Mengembalikan objek Tugas jika berhasil, null jika gagal
     public Tugas buatTugas(String judul, String deskripsi, LocalDateTime tanggalBatas, String kategori, String lokasi) {
         if (currentUser == null) {
             System.err.println("Tidak ada user yang login untuk membuat tugas.");
             return null;
         }
 
-        // PERBAIKAN: Hapus 'mata_kuliah' dari query SQL
         String sql = "INSERT INTO tasks (user_id, judul, deskripsi, tanggal_batas, kategori, lokasi) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -137,7 +143,6 @@ public class PengelolaTugas {
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         int newTaskId = generatedKeys.getInt(1);
-                        // PERBAIKAN: Panggil konstruktor yang benar (8 argumen) dengan status default
                         Tugas tugasBaru = new Tugas(newTaskId, currentUser.getId(), judul, deskripsi, tanggalBatas, kategori, lokasi, "Belum Dimulai");
 
                         if (this.currentUser.getDaftarTugas() != null) {
@@ -155,12 +160,12 @@ public class PengelolaTugas {
         return null;
     }
 
-    // PERBAIKAN: ubahTugas tanpa mataKuliah
+    // Fungsi untuk mengubah data tugas milik user yang sedang login
+    // Mengembalikan true jika berhasil, false jika gagal
     public boolean ubahTugas(int idTugas, String judul, String deskripsi, LocalDateTime tanggalBatas, String kategori, String lokasi) {
         if (currentUser == null) {
             return false;
         }
-        // PERBAIKAN: Hapus mata_kuliah dari query SQL
         String sql = "UPDATE tasks SET judul = ?, deskripsi = ?, tanggal_batas = ?, kategori = ?, lokasi = ? WHERE id = ? AND user_id = ?";
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -182,7 +187,8 @@ public class PengelolaTugas {
         }
     }
 
-    // Metode hapusTugas tetap sama
+    // Fungsi untuk menghapus tugas milik user yang sedang login
+    // Mengembalikan true jika berhasil, false jika gagal
     public boolean hapusTugas(int idTugas) {
         if (currentUser == null) {
             return false;
@@ -205,6 +211,7 @@ public class PengelolaTugas {
         return false;
     }
 
+    // Mengambil daftar tugas milik user yang sedang login
     public List<Tugas> getTugasCurrentUser() {
         if (currentUser == null) {
             return new ArrayList<>();
@@ -214,10 +221,9 @@ public class PengelolaTugas {
         return tugasDariDB;
     }
 
-    // PERBAIKAN: getTugasByUserId tanpa mataKuliah
+    // Mengambil daftar tugas berdasarkan userId tertentu dari database
     private List<Tugas> getTugasByUserId(int userId) {
         List<Tugas> daftarTugasUser = new ArrayList<>();
-        // PERBAIKAN: Hapus mata_kuliah dari query SQL
         String sql = "SELECT id, user_id, judul, deskripsi, tanggal_batas, kategori, lokasi, status " +
                 "FROM tasks WHERE user_id = ? ORDER BY tanggal_batas ASC, id DESC";
 
@@ -236,7 +242,6 @@ public class PengelolaTugas {
                             System.err.println("Format tanggal_batas tidak valid di DB: " + tanggalBatasStr);
                         }
                     }
-                    // PERBAIKAN: Panggil konstruktor yang benar (8 argumen)
                     Tugas tugas = new Tugas(
                             rs.getInt("id"),
                             rs.getInt("user_id"),
@@ -245,7 +250,7 @@ public class PengelolaTugas {
                             tglBatasObj,
                             rs.getString("kategori"),
                             rs.getString("lokasi"),
-                            rs.getString("status") // Ambil status dari DB
+                            rs.getString("status")
                     );
                     daftarTugasUser.add(tugas);
                 }
@@ -255,13 +260,14 @@ public class PengelolaTugas {
         }
         return daftarTugasUser;
     }
+
+    // Mengambil satu tugas berdasarkan id tugas milik user yang sedang login
     public Tugas getTugasById(int idTugas) {
         if (currentUser == null) {
             System.err.println("Tidak ada user yang login untuk mengambil tugas by ID.");
             return null;
         }
 
-        // Query SQL sudah diperbarui tanpa 'mata_kuliah'
         String sql = "SELECT id, user_id, judul, deskripsi, tanggal_batas, kategori, lokasi, status " +
                 "FROM tasks WHERE id = ? AND user_id = ?";
         Tugas tugas = null;
@@ -284,7 +290,6 @@ public class PengelolaTugas {
                         }
                     }
 
-                    // Panggil konstruktor Tugas yang benar (8 argumen, tanpa mata_kuliah)
                     tugas = new Tugas(
                             rs.getInt("id"),
                             rs.getInt("user_id"),
@@ -303,6 +308,8 @@ public class PengelolaTugas {
         }
         return tugas;
     }
+
+    // Mengambil daftar tugas milik user yang sedang login berdasarkan kategori tertentu
     public List<Tugas> getTugasCurrentUserByKategori(String kategoriFilter) {
         if (currentUser == null) {
             return new ArrayList<>();
@@ -313,7 +320,6 @@ public class PengelolaTugas {
         }
 
         List<Tugas> daftarTugasUser = new ArrayList<>();
-        // Query SQL sudah diperbarui tanpa 'mata_kuliah'
         String sql = "SELECT id, user_id, judul, deskripsi, tanggal_batas, kategori, lokasi, status " +
                 "FROM tasks WHERE user_id = ? AND kategori = ? ORDER BY tanggal_batas ASC, id DESC";
 
@@ -335,7 +341,6 @@ public class PengelolaTugas {
                         }
                     }
 
-                    // Panggil konstruktor Tugas yang benar (8 argumen)
                     Tugas tugas = new Tugas(
                             rs.getInt("id"),
                             rs.getInt("user_id"),
@@ -355,8 +360,4 @@ public class PengelolaTugas {
         }
         return daftarTugasUser;
     }
-
-
-    // Perbaikan untuk metode-metode lain yang serupa...
-    // Anda perlu melanjutkan pola perbaikan ini untuk semua metode yang berinteraksi dengan tabel 'tasks'.
 }

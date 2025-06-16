@@ -1,4 +1,3 @@
-
 package tubes.backend;
 
 import java.sql.Connection;
@@ -7,10 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+// Kelas utilitas untuk mengelola koneksi dan resource database SQLite pada aplikasi
 public class DatabaseManager {
+    // Nama file database SQLite yang digunakan aplikasi
     private static final String DB_NAME = "aman_app.db";
+    // URL koneksi JDBC yang digunakan untuk menghubungkan ke database SQLite
     private static final String DB_URL = "jdbc:sqlite:" + DB_NAME;
 
+    // Membuka koneksi ke database SQLite dan mengaktifkan foreign key constraint
+    // Mengembalikan objek Connection jika berhasil, atau null jika gagal
     public static Connection getConnection() {
         Connection connection = null;
         try {
@@ -29,6 +33,8 @@ public class DatabaseManager {
         return connection;
     }
 
+    // Menutup koneksi database yang sudah tidak digunakan lagi
+    // Penting untuk mencegah kebocoran resource pada aplikasi
     public static void closeConnection(Connection connection) {
         if (connection != null) {
             try {
@@ -39,6 +45,8 @@ public class DatabaseManager {
         }
     }
 
+    // Menutup objek Statement setelah selesai digunakan
+    // Membantu membebaskan resource database
     public static void closeStatement(Statement stmt) {
         if (stmt != null) {
             try {
@@ -49,6 +57,8 @@ public class DatabaseManager {
         }
     }
 
+    // Menutup objek ResultSet setelah selesai digunakan
+    // Mencegah kebocoran resource pada aplikasi
     public static void closeResultSet(ResultSet rs) {
         if (rs != null) {
             try {

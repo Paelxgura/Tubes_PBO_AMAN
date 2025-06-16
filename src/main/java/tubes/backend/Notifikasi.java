@@ -3,19 +3,25 @@ package tubes.backend;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+// Kelas ini digunakan untuk mengelola dan mengirim notifikasi pengingat tugas ke user melalui email
 public class Notifikasi {
+    // Menyimpan instance EmailService yang digunakan untuk mengirim email notifikasi
     private EmailService pengirim;
 
+    // Konstruktor untuk menginisialisasi Notifikasi dengan EmailService tertentu
     public Notifikasi(EmailService emailService) {
         this.pengirim = emailService;
     }
 
-    @Deprecated
-    public void jadwalPengingat(Tugas tugas, User user, LocalDateTime waktuPengingat) {
-        System.out.println(String.format("DEPRECATED: Panggilan ke Notifikasi.jadwalPengingat. Penjadwalan kini di mainApp. Tugas '%s' milik %s pada %s",
-                tugas.getJudul(), user.getUsername(), waktuPengingat.toString()));
-    }
+    //
+    // @Deprecated
+    // public void jadwalPengingat(Tugas tugas, User user, LocalDateTime waktuPengingat) {
+    //     System.out.println(String.format("DEPRECATED: Panggilan ke Notifikasi.jadwalPengingat. Penjadwalan kini di mainApp. Tugas '%s' milik %s pada %s",
+    //             tugas.getJudul(), user.getUsername(), waktuPengingat.toString()));
+    // }
 
+    // Fungsi utama untuk mengirim email pengingat tugas ke user
+    // Mengembalikan true jika email berhasil dikirim, false jika gagal
     public boolean kirimPengingat(Tugas tugas, User user) {
         if (user == null || user.getEmail() == null || user.getEmail().trim().isEmpty() || tugas == null) {
             System.err.println("User, email user, atau Tugas tidak boleh null untuk mengirim pengingat.");
@@ -38,7 +44,6 @@ public class Notifikasi {
         String lokasiTugas = (tugas.getLokasi() != null && !tugas.getLokasi().isEmpty() && !tugas.getLokasi().equalsIgnoreCase("Belum Diisi")) ? tugas.getLokasi() : null;
 
         String urlLogo = "https://placehold.co/100x40/012F10/C1D6C8?text=AMAN";
-
 
         String isiHtml = String.format("""
         <!DOCTYPE html>
