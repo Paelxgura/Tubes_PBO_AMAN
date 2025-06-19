@@ -1,3 +1,4 @@
+// File: EditSchedule.java (FINAL - Sudah Diperbaiki)
 package tubes.pages;
 
 import javafx.geometry.Insets;
@@ -12,7 +13,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
-import tubes.backend.Tugas;
+import tubes.backend.Activity;
+import tubes.backend.ActivityManager;
+import tubes.backend.Schedule;
 import tubes.backend.User;
 import tubes.launch.mainApp;
 import javafx.geometry.HPos;
@@ -28,7 +31,7 @@ import java.util.Optional;
 public class EditSchedule extends StackPane {
 
     private mainApp app;
-    private Tugas tugasToEdit;
+    private Activity activityToEdit; // DIGANTI
 
     private Label topLbl;
     private TextField namaKegiatanField;
@@ -40,9 +43,10 @@ public class EditSchedule extends StackPane {
     private CheckBox ingatkanSayaCheckBox;
     private ComboBox<Integer> jamSebelumComboBox;
 
-    public EditSchedule(mainApp app, Tugas tugas) {
+    // Konstruktor diubah untuk menerima Activity
+    public EditSchedule(mainApp app, Activity activity) {
         this.app = app;
-        this.tugasToEdit = tugas;
+        this.activityToEdit = activity;
 
         String backgroundString = getClass().getResource("/Background.png").toString();
         ImageView backgroundImage = new ImageView(new Image(backgroundString));
@@ -57,43 +61,39 @@ public class EditSchedule extends StackPane {
         topLblWrapper.setAlignment(Pos.CENTER);
         topLblWrapper.setPadding(new Insets(10, 0, 10, 0));
 
+        // ... (Kode untuk styling tidak berubah) ...
         Rectangle persegi = new Rectangle();
         persegi.setWidth(800);
         persegi.setHeight(800);
-        persegi.setStyle(
-                "-fx-fill: #FFFFFF;" +
-                        "-fx-opacity: 0.35;" +
-                        "-fx-arc-width: 100;" +
-                        "-fx-arc-height: 100;"
-        );
-
-        Label namaKegiatanLbl = new Label("NAMA KEGIATAN");
+        persegi.setStyle("-fx-fill: #FFFFFF;-fx-opacity: 0.35;-fx-arc-width: 100;-fx-arc-height: 100;");
+        Label namaKegiatanLbl = new Label("NAMA AKTIVITAS");
         namaKegiatanLbl.setFont(Font.font("Segoe UI", 20));
         namaKegiatanLbl.setTextFill(Color.rgb(1, 47, 16, 1));
         Label kategoriLbl = new Label("KATEGORI");
         kategoriLbl.setFont(Font.font("Segoe UI", 20));
         kategoriLbl.setTextFill(Color.rgb(1, 47, 16, 1));
+
         Label tanggalLbl = new Label("TANGGAL");
         tanggalLbl.setFont(Font.font("Segoe UI", 20));
         tanggalLbl.setTextFill(Color.rgb(1, 47, 16, 1));
+
         Label waktuLbl = new Label("WAKTU");
         waktuLbl.setFont(Font.font("Segoe UI", 20));
         waktuLbl.setTextFill(Color.rgb(1, 47, 16, 1));
+
         Label lokasiLbl = new Label("LOKASI");
         lokasiLbl.setFont(Font.font("Segoe UI", 20));
         lokasiLbl.setTextFill(Color.rgb(1, 47, 16, 1));
+
         Label deskripsiLbl = new Label("DESKRIPSI");
         deskripsiLbl.setFont(Font.font("Segoe UI", 20));
         deskripsiLbl.setTextFill(Color.rgb(1, 47, 16, 1));
+
         Label pengingatLbl = new Label("PENGINGAT EMAIL");
         pengingatLbl.setFont(Font.font("Segoe UI", 20));
         pengingatLbl.setTextFill(Color.rgb(1, 47, 16, 1));
 
-        String fieldStyle = "-fx-background-color: rgb(0, 6, 18, 0.35);" +
-                "-fx-border-color: transparent;" +
-                "-fx-border-radius: 5;" +
-                "-fx-text-fill: rgb(193, 214, 200, 1);" +
-                "-fx-font-size: 15px;";
+        String fieldStyle = "-fx-background-color: rgb(0, 6, 18, 0.35);-fx-border-color: transparent;-fx-border-radius: 5;-fx-text-fill: rgb(193, 214, 200, 1);-fx-font-size: 15px;";
         double fieldPrefWidth = 600;
         double fieldPrefHeight = 50;
 
@@ -149,24 +149,24 @@ public class EditSchedule extends StackPane {
             jamSebelumComboBox.setDisable(!newVal);
             if (!newVal) {
                 jamSebelumComboBox.getSelectionModel().clearSelection();
-            } else {
-                jamSebelumComboBox.getSelectionModel().selectFirst();
+            } else { jamSebelumComboBox.getSelectionModel().selectFirst();
             }
         });
 
         HBox pengingatOptionsBox = new HBox(10, this.ingatkanSayaCheckBox, this.jamSebelumComboBox);
         pengingatOptionsBox.setAlignment(Pos.CENTER_LEFT);
 
-        if (this.tugasToEdit != null) {
+        // Logika pengisian form diubah untuk menggunakan 'activityToEdit' dan getter baru
+        if (this.activityToEdit != null) {
             this.topLbl.setText("EDIT JADWAL");
-            this.namaKegiatanField.setText(this.tugasToEdit.getJudul());
-            this.kategoriCB.setValue(this.tugasToEdit.getKategori());
-            if (this.tugasToEdit.getTanggalBatas() != null) {
-                this.tanggalDP.setValue(this.tugasToEdit.getTanggalBatas().toLocalDate());
-                this.waktuField.setText(this.tugasToEdit.getTanggalBatas().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+            this.namaKegiatanField.setText(this.activityToEdit.getTitle()); // .getTitle()
+            this.kategoriCB.setValue(this.activityToEdit.getCategory()); // .getCategory()
+            if (this.activityToEdit.getTanggalBatas() != null) {
+                this.tanggalDP.setValue(this.activityToEdit.getTanggalBatas().toLocalDate());
+                this.waktuField.setText(this.activityToEdit.getTanggalBatas().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
             }
-            this.lokasiField.setText(this.tugasToEdit.getLokasi());
-            this.deskripsiField.setText(this.tugasToEdit.getDeskripsi());
+            this.lokasiField.setText(this.activityToEdit.getLocation()); // .getLocation()
+            this.deskripsiField.setText(this.activityToEdit.getDescription()); // .getDescription()
         } else {
             this.topLbl.setText("MASUKKAN JADWAL BARU");
         }
@@ -201,8 +201,7 @@ public class EditSchedule extends StackPane {
         String buttonStyle = "-fx-background-color: rgb(1, 47, 16, 1);" +
                 "-fx-border-color: transparent;" +
                 "-fx-text-fill: rgb(193, 214, 200, 1);" +
-                "-fx-font-size: 18px;" +
-                "-fx-cursor: hand;" +
+                "-fx-font-size: 18px;-fx-cursor: hand;" +
                 "-fx-font-weight: BOLD;" +
                 "-fx-background-radius: 30;";
 
@@ -247,7 +246,8 @@ public class EditSchedule extends StackPane {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Konfirmasi Batal");
             alert.setHeaderText("Anda yakin ingin membatalkan?");
-            alert.setContentText(this.tugasToEdit != null ? "Perubahan tidak akan disimpan." : "Jadwal baru tidak akan dibuat.");
+            // Menggunakan activityToEdit
+            alert.setContentText(this.activityToEdit != null ? "Perubahan tidak akan disimpan." : "Jadwal baru tidak akan dibuat.");
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 this.app.switchSceneSchedulePage();
@@ -269,14 +269,17 @@ public class EditSchedule extends StackPane {
         boolean ingatkan = this.ingatkanSayaCheckBox.isSelected();
         Integer jamSebelumDeadline = this.jamSebelumComboBox.getValue();
 
+        // ... (Logika validasi input tidak berubah) ...
         if (namaKegiatan == null || namaKegiatan.trim().isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Input Tidak Lengkap", "Nama Kegiatan tidak boleh kosong.");
             return;
         }
+
         if (kategori == null) {
             showAlert(Alert.AlertType.WARNING, "Input Tidak Lengkap", "Kategori harus dipilih.");
             return;
         }
+
         if (tanggal == null) {
             showAlert(Alert.AlertType.WARNING, "Input Tidak Lengkap", "Tanggal harus dipilih.");
             return;
@@ -295,15 +298,16 @@ public class EditSchedule extends StackPane {
             showAlert(Alert.AlertType.WARNING, "Input Tidak Lengkap", "Waktu harus diisi.");
             return;
         }
-
         if (ingatkan && (jamSebelumDeadline == null || jamSebelumDeadline <= 0)) {
             showAlert(Alert.AlertType.WARNING, "Input Tidak Lengkap", "Pilih berapa jam sebelum deadline untuk pengingat.");
             return;
         }
 
         String lokasiInput = (lokasi == null || lokasi.trim().isEmpty()) ? "Belum Diisi" : lokasi.trim();
+
         boolean sukses;
-        Tugas tugasHasil = null;
+
+        Activity activityHasil = null; // DIGANTI ke Activity
 
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Konfirmasi Simpan");
@@ -312,39 +316,42 @@ public class EditSchedule extends StackPane {
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            if (tugasToEdit == null) {
-                // PERBAIKAN: Hapus parameter mataKuliah dari pemanggilan buatTugas
-                tugasHasil = this.app.getPengelolaTugas().buatTugas(
+            ActivityManager activityManager = this.app.getPengelolaActivity();
+
+            if (activityToEdit == null) {
+                // Membuat aktivitas baru
+                activityHasil = activityManager.createActivity(
                         namaKegiatan,
                         deskripsi,
                         tanggalBatasGabungan,
                         kategori,
                         lokasiInput
                 );
-                sukses = (tugasHasil != null);
+                sukses = (activityHasil != null);
+
             } else {
-                // PERBAIKAN: Hapus parameter mataKuliah dan isSelesai dari pemanggilan ubahTugas
-                sukses = this.app.getPengelolaTugas().ubahTugas(
-                        tugasToEdit.getId(),
+                // Mengubah aktivitas yang ada
+                sukses = activityManager.updateActivity(
+                        activityToEdit.getActivityId(), // .getActivityId()
                         namaKegiatan,
                         deskripsi,
                         tanggalBatasGabungan,
                         kategori,
                         lokasiInput
                 );
-                if(sukses) tugasHasil = app.getPengelolaTugas().getTugasById(tugasToEdit.getId());
+                if(sukses) activityHasil = activityManager.getActivityById(activityToEdit.getActivityId());
             }
 
             if (sukses) {
                 showAlert(Alert.AlertType.INFORMATION, "Sukses", "Data jadwal berhasil disimpan.");
-                if (ingatkan && jamSebelumDeadline != null && tugasHasil != null && app.getPengelolaTugas().getCurrentUser() != null) {
+                if (ingatkan && jamSebelumDeadline != null && activityHasil != null && activityManager.getCurrentUser() != null) {
                     LocalDateTime waktuPengingat = tanggalBatasGabungan.minusHours(jamSebelumDeadline);
-                    User currentUser = app.getPengelolaTugas().getCurrentUser();
-                    app.scheduleEmailReminder(tugasHasil, currentUser, waktuPengingat);
+                    User currentUser = activityManager.getCurrentUser();
+                    app.scheduleEmailReminder(activityHasil, currentUser, waktuPengingat);
                 }
                 this.app.switchSceneSchedulePage();
             } else {
-                showAlert(Alert.AlertType.ERROR, "Gagal", "Gagal menyimpan data jadwal. Periksa konsol untuk detail error.");
+                showAlert(Alert.AlertType.WARNING, "Gagal Menyimpan", "Gagal menyimpan data, kemungkinan ada jadwal yang sama");
             }
         }
     }

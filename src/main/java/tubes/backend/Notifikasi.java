@@ -1,30 +1,21 @@
+// File: Notifikasi.java (FINAL - Sudah Disesuaikan)
 package tubes.backend;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-// Kelas ini digunakan untuk mengelola dan mengirim notifikasi pengingat tugas ke user melalui email
 public class Notifikasi {
-    // Menyimpan instance EmailService yang digunakan untuk mengirim email notifikasi
     private EmailService pengirim;
 
-    // Konstruktor untuk menginisialisasi Notifikasi dengan EmailService tertentu
     public Notifikasi(EmailService emailService) {
         this.pengirim = emailService;
     }
 
-    //
-    // @Deprecated
-    // public void jadwalPengingat(Tugas tugas, User user, LocalDateTime waktuPengingat) {
-    //     System.out.println(String.format("DEPRECATED: Panggilan ke Notifikasi.jadwalPengingat. Penjadwalan kini di mainApp. Tugas '%s' milik %s pada %s",
-    //             tugas.getJudul(), user.getUsername(), waktuPengingat.toString()));
-    // }
-
-    // Fungsi utama untuk mengirim email pengingat tugas ke user
-    // Mengembalikan true jika email berhasil dikirim, false jika gagal
-    public boolean kirimPengingat(Tugas tugas, User user) {
-        if (user == null || user.getEmail() == null || user.getEmail().trim().isEmpty() || tugas == null) {
-            System.err.println("User, email user, atau Tugas tidak boleh null untuk mengirim pengingat.");
+    // Fungsi utama untuk mengirim email pengingat
+    // Parameter diubah dari 'Tugas' menjadi 'Activity'
+    public boolean kirimPengingat(Activity activity, User user) {
+        if (user == null || user.getEmail() == null || user.getEmail().trim().isEmpty() || activity == null) {
+            System.err.println("User, email user, atau Activity tidak boleh null untuk mengirim pengingat.");
             return false;
         }
         if (this.pengirim == null) {
@@ -33,18 +24,25 @@ public class Notifikasi {
         }
 
         String emailTo = user.getEmail();
-        String subjek = "Pengingat Tugas: " + tugas.getJudul();
-        String tanggalBatasFormatted = (tugas.getTanggalBatas() != null) ?
-                                       tugas.getTanggalBatas().format(DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy 'pukul' HH:mm")) :
-                                       "Tidak ditentukan";
+        // Menggunakan getter baru dari objek 'activity'
+        String subjek = "Pengingat Aktivitas: " + activity.getTitle();
+
+        // Menggunakan getter baru dari objek 'activity'
+        String tanggalBatasFormatted = (activity.getTanggalBatas() != null) ?
+                activity.getTanggalBatas().format(DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy 'pukul' HH:mm")) :
+                "Tidak ditentukan";
+
         String namaUser = user.getUsername() != null ? user.getUsername() : "Pengguna";
-        String judulTugas = tugas.getJudul() != null ? tugas.getJudul() : "(Tanpa Judul)";
-        String deskripsiTugas = tugas.getDeskripsi() != null && !tugas.getDeskripsi().trim().isEmpty() ? tugas.getDeskripsi() : "-";
-        String kategoriTugas = tugas.getKategori() != null ? tugas.getKategori() : "-";
-        String lokasiTugas = (tugas.getLokasi() != null && !tugas.getLokasi().isEmpty() && !tugas.getLokasi().equalsIgnoreCase("Belum Diisi")) ? tugas.getLokasi() : null;
+
+        // Menggunakan getter baru dari objek 'activity'
+        String judulAktivitas = activity.getTitle() != null ? activity.getTitle() : "(Tanpa Judul)";
+        String deskripsiAktivitas = activity.getDescription() != null && !activity.getDescription().trim().isEmpty() ? activity.getDescription() : "-";
+        String kategoriAktivitas = activity.getCategory() != null ? activity.getCategory() : "-";
+        String lokasiAktivitas = (activity.getLocation() != null && !activity.getLocation().isEmpty() && !activity.getLocation().equalsIgnoreCase("Belum Diisi")) ? activity.getLocation() : null;
 
         String urlLogo = "https://placehold.co/100x40/012F10/C1D6C8?text=AMAN";
 
+        // Teks di dalam email disesuaikan menjadi "Aktivitas"
         String isiHtml = String.format("""
         <!DOCTYPE html>
         <html lang="id">
@@ -71,9 +69,9 @@ public class Notifikasi {
                 <div class="header">
                 </div>
                 <div class="content">
-                    <h1>Pengingat Tugas Anda!</h1>
+                    <h1>Pengingat Aktivitas Anda!</h1>
                     <p>Halo <strong>%s</strong>,</p>
-                    <p>Ini adalah pengingat untuk tugas Anda yang akan segera jatuh tempo atau sudah lewat:</p>
+                    <p>Ini adalah pengingat untuk aktivitas Anda yang akan segera jatuh tempo atau sudah lewat:</p>
                     <div class="task-details">
                         <p><strong>Judul:</strong> %s</p>
                         <p><strong>Waktu:</strong> %s</p>
@@ -82,13 +80,7 @@ public class Notifikasi {
                         <p><strong>Deskripsi:</strong></p>
                         <p>%s</p>
                     </div>
-                    <p>Mohon untuk segera menyelesaikan tugas Anda.</p>
-                    <!-- Anda bisa menambahkan tombol jika ingin mengarahkan ke aplikasi,
-                         tapi untuk email notifikasi sederhana, ini mungkin tidak perlu.
-                    <div class="button-container">
-                        <a href="URL_APLIKASI_ANDA_JIKA_ADA" class="button">Lihat Tugas di Aplikasi</a>
-                    </div>
-                    -->
+                    <p>Mohon untuk segera menyelesaikan aktivitas Anda.</p>
                 </div>
                 <div class="footer">
                     <p></p>
@@ -97,17 +89,17 @@ public class Notifikasi {
         </body>
         </html>
         """,
-        subjek, 
-        namaUser,
-        judulTugas,
-        tanggalBatasFormatted,
-        kategoriTugas,
-        (lokasiTugas != null ? String.format("<p><strong>Lokasi:</strong> %s</p>", lokasiTugas) : ""), 
-        deskripsiTugas,
-        LocalDateTime.now().getYear() 
+                subjek,
+                namaUser,
+                judulAktivitas,
+                tanggalBatasFormatted,
+                kategoriAktivitas,
+                (lokasiAktivitas != null ? String.format("<p><strong>Lokasi:</strong> %s</p>", lokasiAktivitas) : ""),
+                deskripsiAktivitas,
+                LocalDateTime.now().getYear()
         );
 
-        System.out.println("Notifikasi: Mempersiapkan pengingat HTML untuk tugas: " + judulTugas + " kepada user: " + namaUser + " (" + emailTo + ")");
+        System.out.println("Notifikasi: Mempersiapkan pengingat HTML untuk aktivitas: " + judulAktivitas + " kepada user: " + namaUser + " (" + emailTo + ")");
         return pengirim.kirimEmail(emailTo, subjek, isiHtml);
     }
 }

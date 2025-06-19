@@ -169,7 +169,7 @@ public class LogInPage extends StackPane {
                 return;
             }
 
-            boolean loginSukses = app.getPengelolaTugas().masukSistem(usernameOrEmailInput, passwordInput);
+            boolean loginSukses = app.getPengelolaActivity().masukSistem(usernameOrEmailInput, passwordInput);
 
             if (loginSukses) {
                 app.switchSceneSchedulePage();

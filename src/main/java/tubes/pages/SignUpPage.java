@@ -195,7 +195,7 @@ public class SignUpPage extends StackPane {
                 return;
             }
 
-            tubes.backend.User userBaru = app.getPengelolaTugas().daftarAkun(username, email, password);
+            tubes.backend.User userBaru = app.getPengelolaActivity().daftarAkun(username, email, password);
 
             if (userBaru != null) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);

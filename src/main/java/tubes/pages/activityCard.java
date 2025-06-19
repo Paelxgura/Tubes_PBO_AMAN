@@ -1,3 +1,4 @@
+// File: activityCard.java (FINAL - Sudah Diperbaiki)
 package tubes.pages;
 
 import java.util.Optional;
@@ -15,12 +16,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import tubes.backend.Tugas;
+import tubes.backend.Activity;
 import tubes.launch.mainApp;
 
 public class activityCard {
 
-    private Tugas tugas;
+    private Activity activity;
     private mainApp app;
 
     private Rectangle kotakAktivitas;
@@ -41,9 +42,9 @@ public class activityCard {
     private BorderPane aktivitasCardLayout;
     private StackPane aktivitasPane;
 
-    public activityCard(mainApp app, Tugas tugas) {
+    public activityCard(mainApp app, Activity activity) {
         this.app = app;
-        this.tugas = tugas;
+        this.activity = activity;
 
         this.kotakAktivitas = new Rectangle(1300, 400);
         this.kotakAktivitas.setStyle(
@@ -52,13 +53,14 @@ public class activityCard {
                         "-fx-arc-Width: 100;" +
                         "-fx-arc-Height: 100;");
 
-        this.judulAktvLbl = new Label(this.tugas.getJudul());
+        // DIGANTI: .getJudul() -> .getTitle()
+        this.judulAktvLbl = new Label(this.activity.getTitle());
         this.judulAktvLbl.setFont(Font.font("Segoe UI", FontWeight.BOLD, 30));
         this.judulAktvLbl.setTextFill(Color.rgb(193, 214, 200, 1));
 
         this.waktuAktvLbl = new Label();
-        if (this.tugas.getTanggalBatas() != null) {
-            this.waktuAktvLbl.setText(this.tugas.getTanggalBatasFormatted());
+        if (this.activity.getTanggalBatas() != null) {
+            this.waktuAktvLbl.setText(this.activity.getTanggalBatasFormatted());
         } else {
             this.waktuAktvLbl.setText("N/A");
         }
@@ -73,7 +75,8 @@ public class activityCard {
         this.lokasiStaticLbl.setTextFill(Color.rgb(193, 214, 200, 1));
         this.lokasiStaticLbl.setUnderline(true);
 
-        this.namaLokasiAktvLbl = new Label(this.tugas.getLokasi() != null && !this.tugas.getLokasi().trim().isEmpty() ? this.tugas.getLokasi() : "-");
+        // DIGANTI: .getLokasi() -> .getLocation()
+        this.namaLokasiAktvLbl = new Label(this.activity.getLocation() != null && !this.activity.getLocation().trim().isEmpty() ? this.activity.getLocation() : "-");
         this.namaLokasiAktvLbl.setFont(Font.font("Segoe UI", 30));
         this.namaLokasiAktvLbl.setTextFill(Color.rgb(193, 214, 200, 1));
         this.namaLokasiAktvLbl.setWrapText(true);
@@ -81,7 +84,8 @@ public class activityCard {
         this.lokasiVBox = new VBox(5);
         this.lokasiVBox.getChildren().addAll(this.lokasiStaticLbl, this.namaLokasiAktvLbl);
 
-        boolean hasValidLocation = this.tugas.getLokasi() != null && !this.tugas.getLokasi().trim().isEmpty() && !this.tugas.getLokasi().equalsIgnoreCase("Belum Diisi") && !this.tugas.getLokasi().equals("-");
+        // DIGANTI: .getLokasi() -> .getLocation()
+        boolean hasValidLocation = this.activity.getLocation() != null && !this.activity.getLocation().trim().isEmpty() && !this.activity.getLocation().equalsIgnoreCase("Belum Diisi") && !this.activity.getLocation().equals("-");
         this.lokasiVBox.setVisible(hasValidLocation);
         this.lokasiVBox.setManaged(hasValidLocation);
 
@@ -90,7 +94,8 @@ public class activityCard {
         this.deskripsiStaticLbl.setTextFill(Color.rgb(193, 214, 200, 1));
         this.deskripsiStaticLbl.setUnderline(true);
 
-        this.isiDeskripsiAktvLbl = new Label(this.tugas.getDeskripsi() != null && !this.tugas.getDeskripsi().trim().isEmpty() ? this.tugas.getDeskripsi() : "-");
+        // DIGANTI: .getDeskripsi() -> .getDescription()
+        this.isiDeskripsiAktvLbl = new Label(this.activity.getDescription() != null && !this.activity.getDescription().trim().isEmpty() ? this.activity.getDescription() : "-");
         this.isiDeskripsiAktvLbl.setFont(Font.font("Segoe UI", 30));
         this.isiDeskripsiAktvLbl.setTextFill(Color.rgb(193, 214, 200, 1));
         this.isiDeskripsiAktvLbl.setWrapText(true);
@@ -113,7 +118,7 @@ public class activityCard {
                         "-fx-background-radius: 50;" +
                         "-fx-cursor: hand;");
         this.editBtn.setOnAction(e -> {
-            this.app.switchSceneEditSchedulePage(this.tugas);
+            this.app.switchSceneEditSchedulePage(this.activity);
         });
 
         this.hapusBtn = new Button("HAPUS");
@@ -128,17 +133,20 @@ public class activityCard {
         this.hapusBtn.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Konfirmasi Hapus");
-            alert.setHeaderText("Anda yakin ingin menghapus tugas: '" + this.tugas.getJudul() + "'?");
+            // DIGANTI: .getJudul() -> .getTitle(), "tugas" -> "aktivitas"
+            alert.setHeaderText("Anda yakin ingin menghapus aktivitas: '" + this.activity.getTitle() + "'?");
             alert.setContentText("Tindakan ini tidak dapat dibatalkan.");
             Optional<ButtonType> result = alert.showAndWait();
 
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                boolean sukses = this.app.getPengelolaTugas().hapusTugas(this.tugas.getId());
+                // DIGANTI: .hapusActivity() -> .deleteActivity(), .getId() -> .getActivityId()
+                boolean sukses = this.app.getPengelolaActivity().deleteActivity(this.activity.getActivityId());
                 if (sukses) {
-                    showAlert(Alert.AlertType.INFORMATION, "Sukses", "Tugas berhasil dihapus.");
+                    // Teks diubah untuk konsistensi
+                    showAlert(Alert.AlertType.INFORMATION, "Sukses", "Aktivitas berhasil dihapus.");
                     this.app.switchSceneSchedulePage();
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Gagal", "Gagal menghapus tugas.");
+                    showAlert(Alert.AlertType.ERROR, "Gagal", "Gagal menghapus aktivitas.");
                 }
             }
         });
@@ -170,3 +178,14 @@ public class activityCard {
         alert.showAndWait();
     }
 }
+
+
+
+
+
+
+
+
+
+
+
